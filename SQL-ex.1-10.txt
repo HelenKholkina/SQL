@@ -1,0 +1,178 @@
+УСЛОВИЯ ДЛЯ ВСЕХ ЗАДАЧ.
+Схема БД состоит из четырех таблиц:
+Product(maker, model, type)
+PC(code, model, speed, ram, hd, cd, price)
+Laptop(code, model, speed, ram, hd, price, screen)
+Printer(code, model, color, type, price)
+Таблица Product представляет производителя (maker), номер модели (model) и тип ('PC' - ПК, 'Laptop' - ПК-блокнот или 'Printer' - принтер). Предполагается, что номера моделей в таблице Product уникальны для всех производителей и типов продуктов. В таблице PC для каждого ПК, однозначно определяемого уникальным кодом – code, указаны модель – model (внешний ключ к таблице Product), скорость - speed (процессора в мегагерцах), объем памяти - ram (в мегабайтах), размер диска - hd (в гигабайтах), скорость считывающего устройства - cd (например, '4x') и цена - price. Таблица Laptop аналогична таблице РС за исключением того, что вместо скорости CD содержит размер экрана -screen (в дюймах). В таблице Printer для каждой модели принтера указывается, является ли он цветным - color ('y', если цветной), тип принтера - type (лазерный – 'Laser', струйный – 'Jet' или матричный – 'Matrix') и цена - price.
+
+
+1)  Задача: "Найдите номер модели, скорость и размер жесткого диска для всех ПК стоимостью менее 500 дол. Вывести: model, speed и hd."
+  
+      Решение:
+                        SELECT model, speed, hd
+                        FROM PC
+                        WHERE price < 500
+      Ответ:
+                        Правильно.
+Результат выполнения Вашего запроса:
+model	speed	hd
+1232	500	10.0
+1232	450	8.0
+1232	450	10.0
+1260	500	10.0
+
+
+2)  Задача: "Найдите производителей принтеров. Вывести: maker"
+
+      Решение:
+                        SELECT DISTINCT maker 
+                        FROM Product
+                        WHERE type = 'Printer' 
+      Ответ: 
+                        Правильно.
+Результат выполнения Вашего запроса:
+maker
+A
+D
+E
+
+
+3)  Задача: "Найдите номер модели, объем памяти и размеры экранов ПК-блокнотов, цена которых превышает 1000 дол."
+
+      Решение:
+                        SELECT model, ram, screen
+                        FROM Laptop
+                        WHERE price > 1000 
+      Ответ: 
+                        Правильно.
+Результат выполнения Вашего запроса:
+model	ram	screen
+1750	128	14
+1298	64	15
+1752	128	14
+
+
+4)  Задача: "Найдите все записи таблицы Printer для цветных принтеров."
+
+      Решение:
+                        SELECT code, model, color, type, price
+                        FROM Printer
+                        WHERE color = 'y'
+      Ответ: 
+                        Правильно.
+Результат выполнения Вашего запроса:  
+code	model	color	type	price
+3	1434	y	Jet	290.0000
+2	1433	y	Jet	270.0000
+
+
+5)  Задача: "Найдите номер модели, скорость и размер жесткого диска ПК, имеющих 12x или 24x CD и цену менее 600 дол."
+
+      Решение:
+                        SELECT model, speed, hd
+                        FROM PC
+                        WHERE (cd = '12x' or cd = '24x') and price < 600
+      Ответ: 
+                        Правильно.
+Результат выполнения Вашего запроса:     
+model	speed	hd
+1232	500	10.0
+1232	450	8.0
+1232	450	10.0
+1260	500	10.0
+
+
+6)  Задача: "Для каждого производителя, выпускающего ПК-блокноты c объёмом жесткого диска не менее 10 Гбайт, найти скорости таких ПК-блокнотов. Вывод: производитель, скорость."
+
+      Решение:
+                        SELECT DISTINCT maker, speed
+                        FROM Product INNER JOIN Laptop
+                        ON Product.model = Laptop.model
+                        WHERE hd >= 10
+      Ответ: 
+                        Правильно.
+Результат выполнения Вашего запроса:
+
+maker	speed
+A	450
+A	600
+A	750
+B	750
+
+* без DISTINCT дает правильный ответ, но не на проверочной базе. Думаю, что это необходимо для исключения тех ПК-блокнотов, которые имеют одного и того же производителя, объем диска не менее 10 Гбайт и одинаковую скорость. 
+
+
+7)  Задача: "Найдите номера моделей и цены всех имеющихся в продаже продуктов (любого типа) производителя B (латинская буква)."
+
+      Решение:
+                        SELECT Product.model, PC.price
+                        FROM Product INNER JOIN PC
+                        ON Product.model = PC.model
+                        WHERE Product.maker = 'B'
+                        UNION
+                        SELECT Product.model, Laptop.price
+                        FROM Product INNER JOIN Laptop
+                        ON Product.model = Laptop.model
+                        WHERE Product.maker = 'B'
+                        UNION
+                        SELECT Product.model, Printer.price
+                        FROM Product INNER JOIN Printer
+                        ON Product.model = Printer.model
+                        WHERE Product.maker = 'B'
+      Ответ: 
+                        Правильно.
+Результат выполнения Вашего запроса:
+model	price
+1121	850.0000
+1750	1200.0000
+
+
+8)  Задача: "Найдите производителя, выпускающего ПК, но не ПК-блокноты."
+
+      Решение:
+                        SELECT maker
+                        FROM Product
+                        WHERE type = 'PC'
+                        EXCEPT 
+                        SELECT maker
+                        FROM Product
+                        WHERE type = 'Laptop'
+                        
+      Ответ: 
+                        Правильно.
+Результат выполнения Вашего запроса:
+maker
+E
+
+
+9)  Задача: "Найдите производителей ПК с процессором не менее 450 Мгц. Вывести: Maker"
+
+      Решение:
+                        SELECT DISTINCT maker 
+                        FROM Product INNER JOIN PC ON Product.model = PC.model
+                        WHERE speed >= 450
+                        
+      Ответ: 
+                        Правильно.
+Результат выполнения Вашего запроса:
+maker
+A
+B
+E
+
+
+10) Задача: "Найдите модели принтеров, имеющих самую высокую цену. Вывести: model, price"
+
+      Решение:
+                        SELECT model, price
+                        FROM Printer 
+                        WHERE price = (SELECT MAX(price)
+                                                     FROM Printer)
+                        
+      Ответ: 
+                        Правильно.
+Результат выполнения Вашего запроса: 
+model	price
+1288	400.0000
+1276	400.0000
